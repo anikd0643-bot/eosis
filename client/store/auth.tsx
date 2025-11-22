@@ -1,15 +1,22 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type Role = "guest" | "user" | "admin";
-interface User {
+
+export interface User {
+  id: string;
   name: string;
-  email?: string;
+  email: string;
+  mobile?: string;
+  avatar?: string;
+  createdAt: string;
 }
+
 interface AuthState {
   role: Role;
   user: User | null;
   signIn: (role: Role, user: User) => void;
   signOut: () => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const defaultAuth: AuthState = {
@@ -20,6 +27,9 @@ const defaultAuth: AuthState = {
   },
   signOut: () => {
     if (import.meta?.env?.DEV) console.warn("useAuth: signOut called without provider; no-op");
+  },
+  updateUser: () => {
+    if (import.meta?.env?.DEV) console.warn("useAuth: updateUser called without provider; no-op");
   },
 };
 
@@ -53,7 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ role, user, signIn, signOut }), [role, user]);
+  const updateUser = (updates: Partial<User>) => {
+    if (user) {
+      const updated = { ...user, ...updates };
+      setUser(updated);
+    }
+  };
+
+  const value = useMemo(() => ({ role, user, signIn, signOut, updateUser }), [role, user]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

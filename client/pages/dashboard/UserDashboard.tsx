@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/store/auth";
 import { getOrders, saveOrders, type Order } from "@/lib/orders";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/money";
 import { Heart, MapPin, Trash2, Eye, X, Download, RotateCw, Package, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import ProfileSettings from "@/components/admin/ProfileSettings";
 
 interface SavedAddress {
   id: string;
@@ -31,7 +32,8 @@ interface ProductReview {
 }
 
 export default function UserDashboard() {
-  const { role, user } = useAuth();
+  const { role, user, signOut } = useAuth();
+  const nav = useNavigate();
   if (role === "guest") return <Navigate to="/login" replace />;
 
   const orders = getOrders();
@@ -468,28 +470,8 @@ export default function UserDashboard() {
 
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div className="p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Account Information</h2>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-600">Full Name</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{user?.name || "N/A"}</p>
-                </div>
-                <div className="p-4 border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{user?.email || "N/A"}</p>
-                </div>
-                <div className="p-4 border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-600">Account Type</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">Customer</p>
-                </div>
-                <button className="w-full bg-primary text-white px-4 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium">
-                  Edit Profile
-                </button>
-                <button className="w-full border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                  Change Password
-                </button>
-              </div>
+            <div className="p-6">
+              <ProfileSettings />
             </div>
           )}
         </div>
