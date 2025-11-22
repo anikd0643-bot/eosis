@@ -59,6 +59,8 @@ export default function AdminDashboard() {
     saveOrders(next);
   };
 
+  console.log("AdminDashboard rendering", { activeTab, role: auth.role });
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-white to-primary/5">
       {/* Fixed Sidebar */}
