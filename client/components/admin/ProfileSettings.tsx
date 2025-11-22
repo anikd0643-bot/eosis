@@ -268,7 +268,7 @@ export default function ProfileSettings() {
           <button
             onClick={() => {
               signOut();
-              nav("/login");
+              nav("/", { replace: true });
             }}
             className="w-full p-4 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors text-left flex items-center justify-between group"
           >
@@ -320,7 +320,7 @@ export default function ProfileSettings() {
                 <button
                   onClick={() => {
                     handleDeleteAccount();
-                    nav("/login");
+                    nav("/", { replace: true });
                   }}
                   className="flex-1 h-12 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors"
                 >
