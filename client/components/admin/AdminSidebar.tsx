@@ -162,9 +162,6 @@ export default function AdminSidebar({
           </div>
         </div>
       </aside>
-
-      {/* Desktop Sidebar Placeholder */}
-      <div className="hidden lg:block lg:w-64 lg:flex-shrink-0" />
     </>
   );
 }
