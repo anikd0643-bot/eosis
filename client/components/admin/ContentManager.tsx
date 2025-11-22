@@ -72,56 +72,72 @@ export default function ContentManager() {
 
   const onSave = () => {
     saveContent(content);
-    alert("Content saved");
+    alert("✅ Content saved successfully!");
   };
 
   const onReset = () => {
+    if (!confirm("Are you sure you want to reset all content?")) return;
     const next: ContentMap = {};
     setContent(next);
     saveContent(next);
   };
 
   return (
-    <div className="rounded-xl border bg-white overflow-hidden flex flex-col">
-      <div className="border-b p-4 font-semibold text-foreground">
-        Site Content
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          🌐 Site Content Manager
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Update hero section, banners, and category titles across your store.
+        </p>
       </div>
-      <div className="flex-1 overflow-y-auto grid gap-4 p-4 md:p-6 md:grid-cols-2">
+
+      {/* Content Fields Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
         {FIELDS.map((f) => (
-          <label key={f.key} className="grid gap-2 text-sm">
-            <span className="text-xs font-medium text-foreground">
-              {f.label}
-            </span>
-            <input
-              className="h-10 rounded-lg border px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder={f.placeholder}
-              value={content[f.key] ?? ""}
-              onChange={(e) =>
-                setContent({ ...content, [f.key]: e.target.value })
-              }
-            />
-          </label>
+          <div
+            key={f.key}
+            className="rounded-xl border border-primary/10 bg-gradient-to-br from-white to-primary/5 p-4 transition-all hover:border-primary/20 hover:shadow-sm"
+          >
+            <label className="grid gap-3">
+              <span className="text-sm font-bold text-foreground">
+                {f.label}
+              </span>
+              <input
+                className="h-11 rounded-lg border border-primary/20 px-4 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-transparent"
+                placeholder={f.placeholder}
+                value={content[f.key] ?? ""}
+                onChange={(e) =>
+                  setContent({ ...content, [f.key]: e.target.value })
+                }
+              />
+              <p className="text-xs text-muted-foreground line-clamp-1">
+                Key: <code className="text-primary font-mono text-xs">{f.key}</code>
+              </p>
+            </label>
+          </div>
         ))}
       </div>
-      <div className="border-t p-4 flex flex-col gap-2 md:flex-row md:items-center md:gap-2">
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-primary/10">
         <button
-          className="h-10 rounded-lg border px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="h-12 rounded-lg border border-primary/20 px-6 font-medium text-primary transition-all hover:bg-primary/10 hover:border-primary/40"
           onClick={onSave}
         >
-          Save
+          💾 Save All Content
         </button>
         <button
-          className="h-10 rounded-lg border px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="h-12 rounded-lg border border-red-200 px-6 font-medium text-red-600 transition-all hover:bg-red-50 hover:border-red-400"
           onClick={onReset}
         >
-          Reset
+          🔄 Reset to Defaults
         </button>
-        <div className="text-xs text-muted-foreground ml-auto hidden md:block">
-          Missing fields fall back to built-in defaults.
+        <div className="ml-auto flex items-center text-xs text-muted-foreground">
+          ℹ️ Missing fields will use built-in defaults
         </div>
-      </div>
-      <div className="md:hidden border-t p-4 text-xs text-muted-foreground">
-        Missing fields fall back to built-in defaults in the UI.
       </div>
     </div>
   );
