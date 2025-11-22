@@ -58,7 +58,12 @@ export default function AdminDashboard() {
   // Set admin role for demo/development (only once)
   useEffect(() => {
     if (auth.role !== "admin") {
-      auth.signIn("admin", { name: "Admin User", email: "admin@oasis.local" });
+      auth.signIn("admin", {
+        id: "admin-demo",
+        name: "Admin User",
+        email: "admin@oasis.local",
+        createdAt: new Date().toISOString(),
+      });
     }
   }, []);
 
