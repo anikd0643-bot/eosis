@@ -1,11 +1,17 @@
 import { useAuth, type User } from "@/store/auth";
 import { useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, User as UserIcon, Phone, LogIn, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, Phone, LogIn, UserPlus, Shield } from "lucide-react";
+
+interface AdminUser extends User {
+  password?: string;
+  isAdmin?: boolean;
+}
 
 export default function Login() {
   const { signIn } = useAuth();
   const nav = useNavigate();
+  const [userType, setUserType] = useState<"customer" | "admin">("customer");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState("");
@@ -22,6 +28,23 @@ export default function Login() {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
 
+  // Initialize admin account on mount
+  useEffect(() => {
+    const admins = getAdminUsers();
+    if (admins.length === 0) {
+      const defaultAdmin: AdminUser = {
+        id: "admin_001",
+        name: "Admin",
+        email: "admin@example.com",
+        mobile: "+88 01700000000",
+        password: "admin123",
+        isAdmin: true,
+        createdAt: new Date().toISOString(),
+      };
+      saveAdminUsers([defaultAdmin]);
+    }
+  }, []);
+
   // Get all users from localStorage
   const getAllUsers = (): User[] => {
     try {
@@ -34,6 +57,20 @@ export default function Login() {
   // Save all users to localStorage
   const saveAllUsers = (users: User[]) => {
     localStorage.setItem("all_users", JSON.stringify(users));
+  };
+
+  // Get all admin users
+  const getAdminUsers = (): AdminUser[] => {
+    try {
+      return JSON.parse(localStorage.getItem("admin_users") || "[]");
+    } catch {
+      return [];
+    }
+  };
+
+  // Save admin users
+  const saveAdminUsers = (users: AdminUser[]) => {
+    localStorage.setItem("admin_users", JSON.stringify(users));
   };
 
   // Handle Login
@@ -49,29 +86,53 @@ export default function Login() {
       return;
     }
 
-    // Check if email exists
-    const users = getAllUsers();
-    const user = users.find((u) => u.email === loginEmail);
+    if (userType === "admin") {
+      // Admin login
+      const admins = getAdminUsers();
+      const admin = admins.find((a) => a.email === loginEmail);
 
-    if (!user) {
-      setError("Email not found. Please sign up first.");
-      setLoading(false);
-      return;
+      if (!admin) {
+        setError("Admin account not found");
+        setLoading(false);
+        return;
+      }
+
+      if (admin.password !== loginPassword) {
+        setError("Invalid password");
+        setLoading(false);
+        return;
+      }
+
+      // Admin login successful
+      setTimeout(() => {
+        signIn("admin", {
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          mobile: admin.mobile,
+          createdAt: admin.createdAt,
+        });
+        nav("/admin");
+        setLoading(false);
+      }, 800);
+    } else {
+      // Customer login
+      const users = getAllUsers();
+      const user = users.find((u) => u.email === loginEmail);
+
+      if (!user) {
+        setError("Email not found. Please sign up first.");
+        setLoading(false);
+        return;
+      }
+
+      // Login successful
+      setTimeout(() => {
+        signIn("user", user);
+        nav("/dashboard");
+        setLoading(false);
+      }, 800);
     }
-
-    // Check password (simple validation - in production use hashing)
-    if (user.email !== loginEmail) {
-      setError("Invalid credentials");
-      setLoading(false);
-      return;
-    }
-
-    // Login successful
-    setTimeout(() => {
-      signIn("user", user);
-      nav("/dashboard");
-      setLoading(false);
-    }, 800);
   };
 
   // Handle Signup
@@ -152,6 +213,42 @@ export default function Login() {
                 : "Join us for exclusive deals and faster checkout"}
             </p>
           </div>
+
+          {/* User Type Tabs */}
+          {mode === "login" && (
+            <div className="flex border-b border-gray-200 bg-gray-50">
+              <button
+                onClick={() => {
+                  setUserType("customer");
+                  setError("");
+                  setLoginEmail("");
+                  setLoginPassword("");
+                }}
+                className={`flex-1 py-4 font-semibold text-center transition-all ${
+                  userType === "customer"
+                    ? "bg-white border-b-2 border-primary text-primary"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                👤 Customer
+              </button>
+              <button
+                onClick={() => {
+                  setUserType("admin");
+                  setError("");
+                  setLoginEmail("");
+                  setLoginPassword("");
+                }}
+                className={`flex-1 py-4 font-semibold text-center transition-all ${
+                  userType === "admin"
+                    ? "bg-white border-b-2 border-primary text-primary"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          )}
 
           {/* Content */}
           <div className="p-8">
@@ -246,6 +343,13 @@ export default function Login() {
             {/* Signup Mode */}
             {mode === "signup" && (
               <form onSubmit={handleSignup} className="space-y-4">
+                {/* Info Message for Customer Only */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">
+                    📝 <strong>Customer Registration</strong><br/>
+                    Create your account to start shopping and access exclusive features.
+                  </p>
+                </div>
                 {/* Name Field */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -396,8 +500,20 @@ export default function Login() {
         </div>
 
         {/* Demo Info */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>🧪 Demo Mode: Create any account to test the platform</p>
+        <div className="mt-6 space-y-3 text-center text-sm">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 font-semibold mb-2">👤 Customer Demo Login</p>
+            <p className="text-blue-700 text-xs">Create your account or use any test credentials</p>
+          </div>
+          
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <p className="text-purple-800 font-semibold mb-2">🛡️ Admin Demo Login</p>
+            <p className="text-purple-700 text-xs mb-2">Switch to <strong>Admin</strong> tab to login</p>
+            <div className="bg-white rounded p-2 text-left font-mono text-xs space-y-1">
+              <p className="text-gray-700">📧 Email: <span className="text-purple-600">admin@example.com</span></p>
+              <p className="text-gray-700">🔐 Password: <span className="text-purple-600">admin123</span></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
