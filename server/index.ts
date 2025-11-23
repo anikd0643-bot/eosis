@@ -23,5 +23,11 @@ export function createServer() {
   // Import products endpoint
   app.post("/api/import-products", handleImportProducts);
 
+  // SPA fallback route - serve index.html for all non-API routes
+  // This must be AFTER all API routes
+  app.get("*", (_req, res) => {
+    res.sendFile(new URL("../client/index.html", import.meta.url).pathname);
+  });
+
   return app;
 }
